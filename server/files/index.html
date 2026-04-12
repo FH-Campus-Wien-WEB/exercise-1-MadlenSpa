@@ -1,37 +1,432 @@
 <!DOCTYPE html>
 <html lang="en">
-
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Movies!</title>
-    <style>
-        /* Part 3: Your styling goes here */
-    </style>
-    <script>
-        function reverseString(s) {
-            return s.split("").reverse().join("");
+    <head>
+        <meta charset="UTF-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Movie Collection</title>
+        
+        <style>
+            body {
+                font-family: Inter, system-ui, sans-serif;
+                background: #0f172a;
+            padding: 30px 20px;
+            margin: 0;
+            color: #e5e7eb;
+        }
+        
+        h1 {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .movie-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            gap: 18px;
+            max-width: 1100px;
+            margin: 0 auto;
+        }
+        
+        article {
+            background: #f8fafc;
+            color: #1e293b;
+            border-radius: 16px;
+            padding: 18px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.25);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+        }
+        
+        article:hover {
+            transform: translateY(-8px);
+            box-shadow: 0 18px 40px rgba(0,0,0,0.35);
         }
 
-        window.onload = function () {
+        header {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        h2 {
+            color: #0f172a;
+            margin: 0 auto 10px auto;
+            text-align: center;
+            min-height: 3.2em;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            line-height: 1.25;
+        }
+        
+        .poster-wrapper {
+            overflow: hidden;
+            border-radius: 12px;
+            margin: 0 auto 15px auto;
+            width: 200px;
+        }
+        
+        img {
+            width: 100%;
+            max-width: 200px;
+            display: block;
+            border-radius: 12px;
+            transition: transform 0.25s ease;
+            box-shadow: 0 6px 15px rgba(0,0,0,0.15);
+        }
+        
+        .poster-wrapper:hover img {
+            transform: scale(1.06);
+        }
+        
+        .meta {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 4px;
+            margin-top: -6px;
+            margin-bottom: 4px;
+            font-size: 0.8rem;
+            color: #64748b;
+            font-weight: 600;
+        }
+        
+        .meta dt {
+            margin: 0;
+            color: #64748b;
+            font-weight: 700;
+        }
+
+
+        .meta dd,
+        .meta time {
+            margin: 0;
+            color: #64748b;
+            font-weight: 400;
+        }
+
+        .separator {
+            margin: 0 4px;
+        }
+        
+        .details {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .genre-list {
+            margin: 10px 0 12px 0;
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        
+        .genre {
+            background: #ffcc4c;
+            color: #1f2937;
+            padding: 6px 12px;
+            border-radius: 999px;
+            display: inline-block;
+            font-size: 0.9rem;
+            font-weight: 700;
+        }
+        
+        .plot {
+            position: relative;
+            background: #e2e8f0;
+            color: #475569;
+            padding: 12px 12px 30px 12px;
+            border-radius: 10px;
+            margin-top: 8px;
+            margin-bottom: 14px;
+            height: 120px;
+            overflow-y: auto;
+            overflow-x: hidden;
+            line-height: 1.5;
+            box-sizing: border-box;
+        }
+        
+        .plot-label {
+            color: #0f172a;
+            font-weight: 700;
+        }
+        
+        .credits {
+            margin-top: 2px;
+        }
+        
+        .credit-block {
+            margin-bottom: 8px;
+        }
+        
+        .info-label {
+            color: #0f172a;
+            font-weight: 700;
+            display: block;
+            margin-top: 8px;
+            margin-bottom: 4px;
+        }
+        
+        ul {
+            margin: 0 0 14px 14px;
+            padding-left: 12px;
+            color: #475569;
+        }
+        
+        li {
+            margin-bottom: 2px;
+            font-size: 0.92rem;
+        }
+        
+        .ratings {
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+            margin-top: auto;
+            padding-top: 0;
+            flex-wrap: wrap;
+        }
+
+        .ratings span {
+            background: #e5e7eb;
+            color: #111827;
+            padding: 6px 10px;
+            border-radius: 8px;
+            font-size: 0.9rem;
+        }
+        
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: rgba(0,0,0,0.2);
+            border-radius: 999px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(0,0,0,0.3);
+        } 
+    </style>  
+
+    <script> 
+         window.onload = function () {
+
+            // ======================================
+            // 1. FETCH DATA FROM BACKEND
+            // ======================================
+
+            //Create HTTP request to retrieve movie data from "/movies"
             const xhr = new XMLHttpRequest()
-            xhr.onload = function () {
-                const bodyElement = document.querySelector("body")
-                if (xhr.status == 200) {
-		            /* Part 2: Build the HTML elements here and append them to the body */ 
-                    bodyElement.append(reverseString(xhr.responseText))
-                } else {
-                    bodyElement.append("Daten konnten nicht geladen werden, Status " + xhr.status + " - " + xhr.statusText)
-                }
+        
+            // ======================================
+            // 2. HELPER FUNCTIONS
+            // ======================================
+
+            // Formats ISO date -> "DD Mon YYYY"
+            function formatDate(isoDate) {
+                const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
+                const date = new Date(isoDate)
+                const day = String(date.getDate()).padStart(2, "0")
+                const month = months[date.getMonth()]
+                const year = date.getFullYear()
+                return day + " " + month + " " + year
             }
-            xhr.open("GET", "/movies")
-            xhr.send()
-        }
+
+            // Creates a reusable credit block for actors, directors, writers
+            function createCreditBlock(labelText, items) {
+                const block = document.createElement("div");
+                block.className = "credit-block";
+
+                // Section title (e.g. "Actors:")
+                const label = document.createElement("div");
+                label.className = "info-label";
+                label.textContent = labelText;
+
+                // List of names
+                const list = document.createElement("ul");
+                items.forEach(function(item) {
+                    const li = document.createElement("li");
+                    li.textContent = item;
+                    list.append(li);
+                });
+
+                block.append(label, list);
+                return block;
+            }
+
+            // ======================================
+            // 3. HANDLE RESPONSE
+            // ======================================
+
+            // Called when data is loaded from server
+            xhr.onload = function () {
+                const bodyElement = document.querySelector("body");
+            
+                // If request was successful
+                if (xhr.status == 200) {
+                    const movies = JSON.parse(xhr.responseText);
+
+                    // ==============================
+                    // 4. PAGE SETUP
+                    // ==============================
+
+                    //Create main page heading
+                    const heading = document.createElement("h1");
+                    heading.textContent = "Movie Collection";
+                    bodyElement.append(heading);
+
+                    // Main page container for all movie cards
+                    const container = document.createElement("main");
+                    container.className = "movie-container";
+                    bodyElement.append(container);
+
+                    // ==============================
+                    // 5. CREATE MOVIE CARDS
+                    // ==============================
+
+                    // Loop through all movies
+                    movies.forEach(function(movie) {
+
+                        // Each movies is one <article> (semantic container)
+                        const article = document.createElement("article");
+
+
+                        // ==============================
+                        // STRUCTURE (SEMANTIC HTML)
+                        // ==============================
+
+                        // Header -> title, poster, metadata
+                        const header = document.createElement("header");
+
+                        // Details -> genres, plot
+                        const detailsSection = document.createElement("section");
+                        detailsSection.className = "details";
+
+                        // Credits -> actors, directors, writers
+                        const creditsSection = document.createElement("section");
+                        creditsSection.className = "credits";
+
+                        // Footer -> ratings
+                        const footer = document.createElement("footer");
+                        footer.className = "ratings";
+
+                        // ==============================
+                        // HEADER CONTENT
+                        // ==============================
+
+                        // Movie title
+                        const title = document.createElement("h2");
+                        title.textContent = movie.Title;
+                        header.append(title);
+
+                        // Poster image
+                        const posterWrapper = document.createElement("div");
+                        posterWrapper.className = "poster-wrapper";
+
+                        const poster = document.createElement("img");
+                        poster.src = movie.Poster;
+                        poster.alt = movie.Title + " poster";
+
+                        posterWrapper.append(poster);
+                        header.append(posterWrapper);
+
+                        // Metadata: Release date + Runtime
+                        const meta = document.createElement("dl");
+                        meta.className = "meta";
+
+                        const releaseLabel = document.createElement("dt");
+                        releaseLabel.textContent = "Release:";
+
+                        const releaseValue = document.createElement("dd");
+                        const time = document.createElement("time");
+                        time.dateTime = movie.Released;
+                        time.textContent = formatDate(movie.Released);
+                        releaseValue.append(time);
+
+                        const separator = document.createElement("span");
+                        separator.className = "separator";
+                        separator.textContent = " | ";
+
+                        const runtimeLabel = document.createElement("dt");
+                        runtimeLabel.textContent = "Runtime:";
+
+                        const runtimeValue = document.createElement("dd");
+                        runtimeValue.textContent = movie.Runtime + " min";
+                        
+                        meta.append(releaseLabel, releaseValue, separator, runtimeLabel, runtimeValue);
+                        header.append(meta);
+                        
+                        // ==============================
+                        // DETAILS SECTION
+                        // ==============================
+
+                        // Genres (as tags)
+                        const genres = document.createElement("div");
+                        genres.className = "genre-list";
+
+                        movie.Genres.forEach(function(genre) {
+                            const genreSpan = document.createElement("span");
+                            genreSpan.className = "genre";
+                            genreSpan.textContent = genre;
+                            genres.append(genreSpan);
+                        })
+
+                        detailsSection.append(genres);
+                        
+                        // Plot (scrollable)
+                        const plot = document.createElement("div");
+                        plot.className = "plot";
+                        plot.innerHTML = "<span class='plot-label'>Plot:</span><br>" + movie.Plot;
+                        detailsSection.append(plot);
+
+                        // ==============================
+                        // CREDITS SECTION
+                        // ==============================
+
+                        // Actors, Directors, Writers (reusable function)
+                        creditsSection.append(
+                            createCreditBlock("Actors:", movie.Actors),
+                            createCreditBlock("Directors:", movie.Directors),
+                            createCreditBlock("Writers:", movie.Writers)
+                        );
+
+                        // ==============================
+                        // FOOTER SECTION - RATINGS
+                        // ==============================
+
+                        const metascore = document.createElement("span");
+                        metascore.innerHTML = "<strong>Metascore:</strong> " + movie.Metascore;
+
+                        const imdbRating = document.createElement("span");
+                        imdbRating.innerHTML = "<strong>IMDb Rating:</strong> " + movie.imdbRating;
+
+                        footer.append(metascore, imdbRating);
+
+                        // ==============================
+                        // FINAL ASSEMBLY
+                        // ==============================
+
+                        article.append(header, detailsSection, creditsSection, footer);
+                        container.append(article);
+                    });
+                } else {
+                    bodyElement.append("Data could not be loaded " + xhr.status + " - " + xhr.statusText)
+                    }
+                }
+                xhr.open("GET", "/movies")
+                xhr.send()
+            }
     </script>
-
 </head>
-
-<body>
+<body> 
 </body>
-
 </html>
