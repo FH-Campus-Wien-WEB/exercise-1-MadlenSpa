@@ -8,8 +8,8 @@
         
         <style>
             body {
-                font-family: Inter, system-ui, sans-serif;
-                background: #0f172a;
+            font-family: Inter, system-ui, sans-serif;
+            background: #0f172a;
             padding: 30px 20px;
             margin: 0;
             color: #e5e7eb;
@@ -44,15 +44,13 @@
             box-shadow: 0 18px 40px rgba(0,0,0,0.35);
         }
 
-        header {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
+        article header {
+            margin-bottom: 12px;
         }
 
-        h2 {
+        article header h2 {
             color: #0f172a;
-            margin: 0 auto 10px auto;
+            margin: 0;
             text-align: center;
             min-height: 3.2em;
             display: flex;
@@ -60,6 +58,7 @@
             justify-content: center;
             line-height: 1.25;
         }
+
         
         .poster-wrapper {
             overflow: hidden;
@@ -73,12 +72,15 @@
             max-width: 200px;
             display: block;
             border-radius: 12px;
-            transition: transform 0.25s ease;
+            transition: transform 0.25s ease, filter 0.25s ease;
+            transform-origin: center;
             box-shadow: 0 6px 15px rgba(0,0,0,0.15);
         }
         
         .poster-wrapper:hover img {
-            transform: scale(1.06);
+            transform: scale(1.08);
+            filter: brightness(1.15);
+            box-shadow: 0 12px 25px rgba(0,0,0,0.25);
         }
         
         .meta {
@@ -99,29 +101,40 @@
             font-weight: 700;
         }
 
-
-        .meta dd,
-        .meta time {
-            margin: 0;
-            color: #64748b;
-            font-weight: 400;
-        }
-
-        .separator {
+        .meta dd + dd::before {
+            content: " | ";
             margin: 0 4px;
+            color: #64748b;
         }
-        
+
+        .overview,
         .details {
             display: flex;
             flex-direction: column;
         }
+
+        .overview {
+            margin-bottom: 10px;
+        }
+
+        .section-heading {
+            color: #0f172a;
+            font-weight: 700;
+            margin: 8px 0 6px 0;
+        }
         
         .genre-list {
+            list-style: none;
             margin: 10px 0 12px 0;
+            padding: 0;
             display: flex;
             justify-content: center;
             flex-wrap: wrap;
             gap: 8px;
+        }
+
+        .genre-list li {
+            margin: 0;
         }
         
         .genre {
@@ -135,7 +148,6 @@
         }
         
         .plot {
-            position: relative;
             background: #e2e8f0;
             color: #475569;
             padding: 12px 12px 30px 12px;
@@ -149,13 +161,8 @@
             box-sizing: border-box;
         }
         
-        .plot-label {
-            color: #0f172a;
-            font-weight: 700;
-        }
-        
         .credits {
-            margin-top: 2px;
+            margin-top: 8px;
         }
         
         .credit-block {
@@ -170,23 +177,26 @@
             margin-bottom: 4px;
         }
         
-        ul {
+        .credit-block ul {
             margin: 0 0 14px 14px;
             padding-left: 12px;
             color: #475569;
         }
         
-        li {
+        .credit-block li {
             margin-bottom: 2px;
             font-size: 0.92rem;
         }
         
+        .ratings-section {
+            margin-top: auto;
+            padding-top: 10px;
+        }
+
         .ratings {
             display: flex;
             justify-content: center;
             gap: 12px;
-            margin-top: auto;
-            padding-top: 10px;
             flex-wrap: wrap;
         }
 
@@ -219,18 +229,11 @@
     <script> 
          window.onload = function () {
 
-            // ======================================
-            // 1. FETCH DATA FROM BACKEND
-            // ======================================
-
+            // 1. FETCH DATA
             //Create HTTP request to retrieve movie data from "/movies"
             const xhr = new XMLHttpRequest()
         
-            // ======================================
             // 2. HELPER FUNCTIONS
-            // ======================================
-
-            // Formats ISO date -> "DD Mon YYYY"
             function formatDate(isoDate) {
                 const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
                 const date = new Date(isoDate)
@@ -240,18 +243,19 @@
                 return day + " " + month + " " + year
             }
 
-            // Creates a reusable credit block for actors, directors, writers
+            // Creates reusable credit block for actors, directors, writers
             function createCreditBlock(labelText, items) {
-                const block = document.createElement("div");
+                const block = document.createElement("section");
                 block.className = "credit-block";
 
-                // Section title (e.g. "Actors:")
-                const label = document.createElement("div");
+                // Section title
+                const label = document.createElement("h3");
                 label.className = "info-label";
                 label.textContent = labelText;
 
                 // List of names
                 const list = document.createElement("ul");
+
                 items.forEach(function(item) {
                     const li = document.createElement("li");
                     li.textContent = item;
@@ -262,23 +266,16 @@
                 return block;
             }
 
-            // ======================================
             // 3. HANDLE RESPONSE
-            // ======================================
-
             // Called when data is loaded from server
             xhr.onload = function () {
-                const bodyElement = document.querySelector("body");
+                const bodyElement = document.body;
             
-                // If request was successful
-                if (xhr.status == 200) {
+                if (xhr.status === 200) {
                     const movies = JSON.parse(xhr.responseText);
 
-                    // ==============================
                     // 4. PAGE SETUP
-                    // ==============================
 
-                    //Create main page heading
                     const heading = document.createElement("h1");
                     heading.textContent = "Movie Collection";
                     bodyElement.append(heading);
@@ -288,41 +285,33 @@
                     container.className = "movie-container";
                     bodyElement.append(container);
 
-                    // ==============================
                     // 5. CREATE MOVIE CARDS
-                    // ==============================
 
-                    // Loop through all movies
                     movies.forEach(function(movie) {
-
                         // Each movies is one <article> (semantic container)
                         const article = document.createElement("article");
 
 
-                        // ==============================
                         // STRUCTURE (SEMANTIC HTML)
-                        // ==============================
-
-                        // Header -> title, poster, metadata
+                        // Header -> title
                         const header = document.createElement("header");
 
-                        // Details -> genres, plot
-                        const detailsSection = document.createElement("section");
+                        // Overview -> poster, metadata, genres
+                        const overviewSection = document.createElement("div");
+                        overviewSection.className = "overview";
+
+                        // Details -> plot and credits
+                        const detailsSection = document.createElement("div");
                         detailsSection.className = "details";
 
-                        // Credits -> actors, directors, writers
                         const creditsSection = document.createElement("section");
                         creditsSection.className = "credits";
 
-                        // Footer -> ratings
-                        const footer = document.createElement("footer");
-                        footer.className = "ratings";
+                        // Ratings
+                        const ratingsSection = document.createElement("div");
+                        ratingsSection.className = "ratings-section";
 
-                        // ==============================
                         // HEADER CONTENT
-                        // ==============================
-
-                        // Movie title
                         const title = document.createElement("h2");
                         title.textContent = movie.Title;
                         header.append(title);
@@ -336,7 +325,7 @@
                         poster.alt = movie.Title + " poster";
 
                         posterWrapper.append(poster);
-                        header.append(posterWrapper);
+                        overviewSection.append(posterWrapper);
 
                         // Metadata: Release date + Runtime
                         const meta = document.createElement("dl");
@@ -351,46 +340,48 @@
                         time.textContent = formatDate(movie.Released);
                         releaseValue.append(time);
 
-                        const separator = document.createElement("span");
-                        separator.className = "separator";
-                        separator.textContent = " | ";
-
                         const runtimeLabel = document.createElement("dt");
                         runtimeLabel.textContent = "Runtime:";
 
                         const runtimeValue = document.createElement("dd");
                         runtimeValue.textContent = movie.Runtime + " min";
                         
-                        meta.append(releaseLabel, releaseValue, separator, runtimeLabel, runtimeValue);
-                        header.append(meta);
+                        meta.append(releaseLabel, releaseValue, runtimeLabel, runtimeValue);
+                        overviewSection.append(meta);
                         
-                        // ==============================
+  
                         // DETAILS SECTION
-                        // ==============================
-
-                        // Genres (as tags)
-                        const genres = document.createElement("div");
+                          // Genres (as tags)
+                        const genres = document.createElement("ul");
                         genres.className = "genre-list";
 
                         movie.Genres.forEach(function(genre) {
+                            const genreItem = document.createElement("li");
+
                             const genreSpan = document.createElement("span");
                             genreSpan.className = "genre";
                             genreSpan.textContent = genre;
-                            genres.append(genreSpan);
+
+                            genreItem.append(genreSpan);
+                            genres.append(genreItem);
                         })
 
-                        detailsSection.append(genres);
+                        overviewSection.append(genres);
                         
                         // Plot (scrollable)
-                        const plot = document.createElement("div");
+                        const plotSection = document.createElement("section");
+
+                        const plotHeading = document.createElement("h3");
+                        plotHeading.className = "section-heading";
+                        plotHeading.textContent = "Plot:";
+
+                        const plot = document.createElement("p");
                         plot.className = "plot";
-                        plot.innerHTML = "<span class='plot-label'>Plot:</span><br>" + movie.Plot;
-                        detailsSection.append(plot);
+                        plot.textContent = movie.Plot;
 
-                        // ==============================
+                        plotSection.append(plotHeading, plot);
+
                         // CREDITS SECTION
-                        // ==============================
-
                         // Actors, Directors, Writers (reusable function)
                         creditsSection.append(
                             createCreditBlock("Actors:", movie.Actors),
@@ -398,23 +389,23 @@
                             createCreditBlock("Writers:", movie.Writers)
                         );
 
-                        // ==============================
-                        // FOOTER SECTION - RATINGS
-                        // ==============================
+                        // RATINGS SECTION
+                        const ratings = document.createElement("div");
+                        ratings.className = "ratings";
 
                         const metascore = document.createElement("span");
-                        metascore.innerHTML = "<strong>Metascore:</strong> " + movie.Metascore;
+                        metascore.textContent = "Metascore: " + movie.Metascore;
 
                         const imdbRating = document.createElement("span");
-                        imdbRating.innerHTML = "<strong>IMDb Rating:</strong> " + movie.imdbRating;
+                        imdbRating.textContent = "IMDb Rating: " + movie.imdbRating;
 
-                        footer.append(metascore, imdbRating);
+                        ratings.append(metascore, imdbRating);
+                        ratingsSection.append(ratings);
 
-                        // ==============================
+
                         // FINAL ASSEMBLY
-                        // ==============================
-
-                        article.append(header, detailsSection, creditsSection, footer);
+                        detailsSection.append(plotSection, creditsSection);
+                        article.append(header, overviewSection, detailsSection, ratingsSection);
                         container.append(article);
                     });
                 } else {
