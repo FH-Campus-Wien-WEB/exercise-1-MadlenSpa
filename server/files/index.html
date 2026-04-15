@@ -48,7 +48,7 @@
             margin-bottom: 12px;
         }
 
-        article header h2 {
+        h2 {
             color: #0f172a;
             margin: 0;
             text-align: center;
@@ -101,8 +101,14 @@
             font-weight: 700;
         }
 
-        .meta dd + dd::before {
-            content: " | ";
+        .meta dd,
+        .meta time {
+            margin: 0;
+            color: #64748b;
+            font-weight: 400;
+        }
+
+        .separator {
             margin: 0 4px;
             color: #64748b;
         }
@@ -340,13 +346,17 @@
                         time.textContent = formatDate(movie.Released);
                         releaseValue.append(time);
 
+                        const separator = document.createElement("span");
+                        separator.className = "separator";
+                        separator.textContent = "|";
+
                         const runtimeLabel = document.createElement("dt");
                         runtimeLabel.textContent = "Runtime:";
 
                         const runtimeValue = document.createElement("dd");
                         runtimeValue.textContent = movie.Runtime + " min";
                         
-                        meta.append(releaseLabel, releaseValue, runtimeLabel, runtimeValue);
+                        meta.append(releaseLabel, releaseValue, separator, runtimeLabel, runtimeValue);
                         overviewSection.append(meta);
                         
   
